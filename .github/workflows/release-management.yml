@@ -193,7 +193,7 @@ jobs:
                 github-token: ${{ secrets.PAT_TOKEN }}
                 tag-name: ${{ inputs.version }}
                 commitish: ${{ github.ref }}
-                body: ${{ steps.set_changelog.outputs.CHANGELOG }}
+                body: ${{ env.CHANGELOG }}
                 prerelease: ${{ inputs.is_prerelease }}
                 delete-existing-release: true
 
