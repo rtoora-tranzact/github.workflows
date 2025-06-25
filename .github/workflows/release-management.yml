@@ -177,9 +177,13 @@ jobs:
               id: set_changelog
               run: |
                 if [ "${{ inputs.is_prerelease }}" = "true" ]; then
-                  echo "CHANGELOG=${{ steps.build_changelog_prerelease.outputs.changelog }}" >> $GITHUB_OUTPUT
+                  echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+                  echo "${{ steps.build_changelog_prerelease.outputs.changelog }}" >> $GITHUB_ENV
+                  echo "EOF" >> $GITHUB_ENV
                 else
-                  echo "CHANGELOG=${{ steps.build_changelog_stable.outputs.changelog }}" >> $GITHUB_OUTPUT
+                  echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+                  echo "${{ steps.build_changelog_stable.outputs.changelog }}" >> $GITHUB_ENV
+                  echo "EOF" >> $GITHUB_ENV
                 fi
 
             - id: create-release
@@ -197,12 +201,9 @@ jobs:
               id: check_notification
               run: |
                 if [[ "${{ inputs.send_teams_notification }}" == "true" && "${{ secrets.POWER_AUTOMATE_WEBHOOK_URL }}" != "" ]]; then
-                    echo "SEND_NOTIFICATION=true" >> $GITHUB_OUTPUT
+                  echo "SEND_NOTIFICATION=true" >> $GITHUB_OUTPUT
                 else
-                    echo "SEND_NOTIFICATION=false" >> $GITHUB_OUTPUT
-                    if [[ "${{ inputs.send_teams_notification }}" == "true" && "${{ secrets.POWER_AUTOMATE_WEBHOOK_URL }}" == "" ]]; then
-                      echo "Warning: Teams notification requested but POWER_AUTOMATE_WEBHOOK_URL secret is not set."
-                    fi
+                  echo "SEND_NOTIFICATION=false" >> $GITHUB_OUTPUT
                 fi
 
             - name: Send Teams Notification via Power Automate
