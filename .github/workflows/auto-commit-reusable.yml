@@ -86,14 +86,17 @@ jobs:
             "breaking-change"|"major")
               COMMIT_TYPE="BREAKING CHANGE"
               echo "✅ Valid label: $LABEL_NAME -> $COMMIT_TYPE"
+              echo "is_valid=true" >> $GITHUB_OUTPUT
               ;;
             "enhancement"|"minor"|"feat")
               COMMIT_TYPE="feat"
               echo "✅ Valid label: $LABEL_NAME -> $COMMIT_TYPE"
+              echo "is_valid=true" >> $GITHUB_OUTPUT
               ;;
             *)
-              echo "Unexpected error: $LABEL_NAME should be valid"
-              exit 1
+              echo "ℹ️ Label '$LABEL_NAME' is not supported for automated commits. Skipping workflow execution."
+              echo "is_valid=false" >> $GITHUB_OUTPUT
+              exit 0
               ;;
           esac
 
@@ -102,7 +105,9 @@ jobs:
           echo "Selected label: $LABEL_NAME -> Commit type: $COMMIT_TYPE"
 
       - name: Check if automated commit already exists
-        if: steps.find-label.outputs.has_valid_label == 'true'
+        if: |
+          steps.find-label.outputs.has_valid_label == 'true' &&
+          steps.validate-label.outputs.is_valid == 'true'
         id: check-existing-commit
         run: |
           # Check if there's already an automated commit in this PR
@@ -120,6 +125,7 @@ jobs:
       - name: Create automated commit
         if: |
           steps.find-label.outputs.has_valid_label == 'true' &&
+          steps.validate-label.outputs.is_valid == 'true' &&
           steps.check-existing-commit.outputs.should_create_commit == 'true'
         run: |
           COMMIT_TYPE="${{ steps.validate-label.outputs.commit_type }}"
@@ -141,7 +147,9 @@ jobs:
 
       - name: Push changes
         if: |
-            steps.find-label.outputs.has_valid_label == 'true' && steps.check-existing-commit.outputs.should_create_commit == 'true'
+            steps.find-label.outputs.has_valid_label == 'true' &&
+            steps.validate-label.outputs.is_valid == 'true' &&
+            steps.check-existing-commit.outputs.should_create_commit == 'true'
         run: |
           git push origin ${{ github.event.pull_request.head.ref }}
           echo "✅ Changes pushed successfully"
