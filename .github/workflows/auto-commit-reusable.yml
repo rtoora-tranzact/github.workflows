@@ -51,7 +51,6 @@ jobs:
             const supportedLabels = [
               'breaking-change', 'major',
               'enhancement', 'minor', 'feat',
-              'bug', 'bugfix', 'patch', 'fix'
             ];
 
             console.log('PR Labels:', pullRequest.labels.map(l => l.name));
